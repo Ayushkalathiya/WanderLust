@@ -3,6 +3,7 @@ class ExpressError extends Error {
         super();
         this.statusCode = statusCode;
         this.message = message;
+        // console.error(message);
     }
 }
 

@@ -1,3 +1,8 @@
+// 
+if(process.env.NODE_ENV != 'production'){
+  require('dotenv').config();
+}
+
 const express = require('express');
 const app = express();
 const mongoose = require('mongoose');
@@ -10,18 +15,24 @@ const flash = require('connect-flash');
 const passport = require('passport');
 const LocalStrategy = require('passport-local');
 const User = require('./models/user.js');
+// mongo store for data
+const MongoStore = require('connect-mongo');
 
 
 const listingRouter = require('./routes/listing.js');
 const reviewRouter = require('./routes/review.js')
-const userRouter = require('./routes/user.js')
+const userRouter = require('./routes/user.js');
+const { error } = require('console');
 
+//const mongodbUrl = 'mongodb://127.0.0.1:27017/wanderlust'
+// for connect atlas of mongodb and use cloud
+const dbUrl = process.env.ATLASDB_URL;
 
 main().
 catch(err => console.log(err));
 
 async function main() {
-  await mongoose.connect('mongodb://127.0.0.1:27017/wanderlust');
+  await mongoose.connect(dbUrl);
 }
 
 app.set("view engine", "ejs");
@@ -31,8 +42,22 @@ app.use(methodOverride("_method"));
 app.engine("ejs", ejsMate);
 app.use(express.static(path.join(__dirname,"/public")));
 
+// for store session details on Atlas
+const store = MongoStore.create({
+  mongoUrl: dbUrl,
+  crypto: {
+    secret: process.env.SECRET,
+  },
+  touchAfter: 24*3600,
+});
+
+store.on("error", (error)=>{
+  console.log(error);
+});
+
 const sessionOptions = {
-  secret: "mysupersecretcode",
+  store,
+  secret: process.env.SECRET,
   resave: false,
   saveUninitialized: true,
   cookie : {
@@ -40,10 +65,14 @@ const sessionOptions = {
     maxAge : 7 * 24   * 60 * 60 * 1000 ,
     httpOnly: true,
   },
-}
-app.get("/",(req,res)=>{
-    res.send("Hello");
-});
+};
+
+
+
+
+// app.get("/",(req,res)=>{
+//     res.send("Hello");
+// });
 
 // for cookie
 app.use(session(sessionOptions));
@@ -108,7 +137,7 @@ app.use("/", userRouter);
 // if request is not match any of the above requests
 // if page is not availabe
 app.all("*", (req,res,next)=>{
-  console.log("All");
+  console.log("Not Found Page");
   next(new ExpressError(404,"Page Not Found"));
 });
 

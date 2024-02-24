@@ -2,6 +2,7 @@ const Listing = require("./models/listing.js");
 const ExpressError = require("./utils/ExpressError.js");
 const {listingSchema} = require("./schema.js");
 const {reviewSchema} = require("./schema.js");
+const Review = require("./models/review.js");
 module.exports.isLoggedIn = (req,res,next)=>{
     //req.user have -> use information and 
     // it is default function of passport
@@ -31,19 +32,22 @@ module.exports.isOwner = async (req,res,next)=>{
     let listing = await Listing.findById(id);
     console.log("Listing in Middlware : ", listing);
     
-    if(!listing.owner.equals(res.locals.currUser._id)){
+    if(!listing.owner.equals(res.locals.CurrUser._id)){
         req.flash("error","You are not owner of this listing");
         return res.redirect(`/listings/${id}`);
     }
-
+    next();
 };
 
 // validate
 module.exports.validateListing = (req,res,next) =>{
     // check all the condition (by Joi) at scema.js
     let {error} = listingSchema.validate(req.body);
+    console.log( "validateListing : " , req.body.listing);
+    console.log("validateListing Title : ", req.body.listing.title);
     if(error){
      let errMsg = error.details.map((el)=>el.message).join(",");
+    //  console.log(error);
       throw new ExpressError(404,errMsg);
     } else{
      next();
@@ -61,3 +65,16 @@ module.exports.validateReview = (req,res,next) =>{
      next();
     }
  };
+
+ module.exports.isReviewAuthor = async (req,res,next)=>{
+    let {id} = req.params
+    let {reviewId} = req.params;
+    // console.log("In Middlware : ", id);
+    let review = await Review.findById(reviewId);
+
+    if(!review.author.equals(res.locals.CurrUser._id)){
+        req.flash("error","You are not author of review");
+        return res.redirect(`/listings/${id}`);
+    }
+    next();
+};

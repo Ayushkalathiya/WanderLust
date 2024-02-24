@@ -9,11 +9,10 @@ const listingSchema = new Schema({
     },
     description: String,
     image: {
-        
             filename: String,
             url:{    type: String,
-                default: 'https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-                set: (v)=>v==="" ? "https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D":v,
+                    default: 'https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+                    set: (v)=>v==="" ? "https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D":v,
             }       
     },
     price: Number,
@@ -29,6 +28,22 @@ const listingSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref : "User",
     },
+    // mongoose GeoJson
+    geometry: { 
+       type :{
+        type: String, // Don't do `{ location: { type: String } }`
+        enum: ['Point'], // 'location.type' must be 'Point'
+        required: true
+      },
+      coordinates: {
+        type: [Number],
+        required: true
+      }
+    },
+    // catagory :{
+    //     type: String,
+    //     enum: ["mountains","farms","Aictic"],
+    // } 
 });
 
 listingSchema.post("findOneAndDelete", async(listing) => {
